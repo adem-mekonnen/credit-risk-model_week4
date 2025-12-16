@@ -1,17 +1,16 @@
-# credit-risk-model_week4
-# Credit Scoring Business Understanding
+# Credit Risk Model - Bati Bank
 
-## 1. Basel II and Model Interpretability
-The Basel II Accord emphasizes "Minimum Capital Requirements," requiring banks to calculate risk-weighted assets. To comply, banks must use models that are rigorous, validated, and interpretable. We cannot use a "black box" model without explanation because we must justify capital reserves to regulators and explain rejection reasons to customers. This prioritizes models like Logistic Regression or interpretable Decision Trees over complex deep learning models.
+## Credit Scoring Business Understanding
 
-## 2. Proxy Variable Necessity & Risks
-**Why:** We do not have historical loan repayment data (a "Default" label). We only have eCommerce transaction behavior.
-**Proxy:** We use RFM (Recency, Frequency, Monetary) analysis to assume that low-activity, low-value customers are "High Risk."
-**Risks:** The proxy assumption might be wrong. A customer might buy rarely (Low Frequency) but be very wealthy and reliable. relying on this proxy might lead to "Type I Errors" (rejecting good customers) or "Type II Errors" (approving bad customers who just happen to spend frequently).
+### 1. Basel II & Interpretability
+The Basel II Accord requires banks to calculate capital reserves based on risk-weighted assets. To comply, models must be transparent. We cannot use "black box" models (like complex neural networks) because we must explain to regulators and customers why a specific loan was rejected. This makes interpretable models like Logistic Regression (backed by Weight of Evidence) preferable.
 
-## 3. Trade-offs: Interpretable vs. High-Performance Models
-| Feature | Logistic Regression (Interpretable) | Gradient Boosting (Complex) |
-| :--- | :--- | :--- |
-| **Regulation** | High compliance (Basel II friendly) | Harder to validate for regulators |
-| **Accuracy** | Generally lower on non-linear data | High accuracy, captures complex patterns |
-| **Explanation** | Clear "Scorecard" (WoE points) | Requires SHAP/LIME for explanation |
+### 2. The Proxy Variable (Risk)
+**Why:** The Xente dataset lacks a "Loan Default" column. We only have eCommerce transaction history.
+**The Proxy:** We define "High Risk" users using RFM (Recency, Frequency, Monetary) analysis.
+**Assumption:** Users who are inactive (High Recency) and spend little (Low Frequency/Monetary) are statistically less likely to be reliable borrowers compared to active, high-volume users.
+**Risks:** Relying on a proxy introduces "Type I Errors" (rejecting good customers who prefer cash) and "Type II Errors" (approving bad customers who transact frequently but don't repay).
+
+### 3. Model Trade-offs
+*   **Logistic Regression:** Highly interpretable, compliant with regulations, easy to deploy, but captures fewer complex patterns.
+*   **Gradient Boosting (Random Forest/XGBoost):** Higher accuracy, handles non-linear data well, but harder to interpret for regulatory compliance.

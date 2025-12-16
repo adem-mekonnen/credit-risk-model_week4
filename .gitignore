@@ -1,0 +1,12 @@
+# Python environment
+.venv/
+venv/
+
+# Data and MLflow tracking
+data/
+mlruns/
+
+# Compiled files
+__pycache__/
+*.pyc
+*.egg-info

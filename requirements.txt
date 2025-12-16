@@ -3,7 +3,6 @@ numpy
 scikit-learn
 matplotlib
 seaborn
-xverse
 mlflow
 fastapi
 uvicorn
@@ -11,3 +10,4 @@ pydantic
 pytest
 flake8
 joblib
+xverse

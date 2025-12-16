@@ -7,52 +7,55 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score, accuracy_score
 import joblib
 import os
-import logging
 
-logging.basicConfig(level=logging.INFO)
-
-def train_model():
-    input_path = "data/processed/train_data.csv"
+def train():
+    data_path = "data/processed/train_data.csv"
     model_path = "src/api/best_model.pkl"
     
-    try:
-        if not os.path.exists(input_path):
-            raise FileNotFoundError(f"{input_path} not found. Run data_processing.py first.")
+    if not os.path.exists(data_path):
+        print("Processed data not found. Run data_processing.py first.")
+        return
+
+    df = pd.read_csv(data_path)
+    
+    # Split
+    X = df.drop(['AccountId', 'is_high_risk'], axis=1)
+    y = df['is_high_risk']
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    
+    mlflow.set_experiment("Credit_Risk_Xente")
+    
+    models = {
+        "LogisticRegression": LogisticRegression(max_iter=1000),
+        "RandomForest": RandomForestClassifier(n_estimators=100, random_state=42)
+    }
+    
+    best_auc = 0
+    best_model = None
+    
+    for name, model in models.items():
+        with mlflow.start_run(run_name=name):
+            model.fit(X_train, y_train)
             
-        logging.info("Loading training data...")
-        df = pd.read_csv(input_path)
-        
-        X = df.drop(['AccountId', 'is_high_risk'], axis=1)
-        y = df['is_high_risk']
-        
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        
-        mlflow.set_experiment("Credit_Risk_Model")
-        
-        # Train Random Forest
-        with mlflow.start_run(run_name="RandomForest"):
-            logging.info("Training Random Forest...")
-            rf = RandomForestClassifier(n_estimators=100, random_state=42)
-            rf.fit(X_train, y_train)
-            
-            # Metrics
-            probs = rf.predict_proba(X_test)[:, 1]
+            # Predict
+            probs = model.predict_proba(X_test)[:, 1]
             auc = roc_auc_score(y_test, probs)
-            acc = accuracy_score(y_test, rf.predict(X_test))
-            
-            logging.info(f"Random Forest AUC: {auc}")
+            acc = accuracy_score(y_test, model.predict(X_test))
             
             # Log
             mlflow.log_metric("auc", auc)
             mlflow.log_metric("accuracy", acc)
-            mlflow.sklearn.log_model(rf, "model")
+            mlflow.sklearn.log_model(model, name)
             
-            # Save Artifact
-            joblib.dump(rf, model_path)
-            logging.info(f"Model saved to {model_path}")
+            print(f"{name} AUC: {auc:.4f}")
             
-    except Exception as e:
-        logging.error(f"Training failed: {e}")
+            if auc > best_auc:
+                best_auc = auc
+                best_model = model
+    
+    # Save Best Model
+    joblib.dump(best_model, model_path)
+    print(f"Best model saved to {model_path} with AUC: {best_auc:.4f}")
 
 if __name__ == "__main__":
-    train_model()
+    train()
